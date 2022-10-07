@@ -164,7 +164,10 @@ func (c *copier) write(chunk copierChunk) {
 
 	_, err := c.to.StageBlock(c.ctx, chunk.id, bytes.NewReader(chunk.buffer[:chunk.length]), c.o.AccessConditions.LeaseAccessConditions, nil, c.o.ClientProvidedKeyOptions)
 	if err != nil {
-		c.errCh <- fmt.Errorf("write error: %w", err)
+		select {
+		case c.errCh <- fmt.Errorf("write error: %w", err):
+		default:
+		}
 		return
 	}
 }
